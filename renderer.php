@@ -23,15 +23,22 @@ class block_simple_nav_renderer extends plugin_renderer_base {
             $externalnode = $this->sn_print_item($item);
             if (!is_null($externalnode)) {
                 $childnode = $doc->importNode($externalnode, true);
-                
+                $hidden= $externalnode->expanded=="true" ? "false" : "true"; 
                 if ($item['mytype'] == "category" || $item['mytype'] == "home" ||
                          $item['mytype'] == "nohome") {
                     $categorynode = $mainnode->appendChild($childnode);
                     $ul = $doc->createElement('ul');
+                    $ul -> setAttribute('role',"group");
+                    $ul -> setAttribute('id',$externalnode->itemid);
+                    $ul -> setAttribute('aria-hidden',$hidden);
+
                     $categorynode = $categorynode->appendChild($ul);
                 } else if ($item['mytype'] == "course") {
                     $coursenode = $categorynode->appendChild($childnode);
                     $ul = $doc->createElement('ul');
+                    $ul -> setAttribute('role',"group");
+                    $ul -> setAttribute('id',$externalnode->itemid);
+                    $ul -> setAttribute('aria-hidden',$hidden);
                     $coursenode = $coursenode->appendChild($ul);
                 } else if ($item['mytype'] == "module") {
                     if (!is_null($coursenode)) {
@@ -40,6 +47,8 @@ class block_simple_nav_renderer extends plugin_renderer_base {
                         $categorynode->appendChild($childnode);
                     }
                 }
+            
+
             }
         }
         
@@ -86,31 +95,31 @@ class block_simple_nav_renderer extends plugin_renderer_base {
         }
         
         // we only want the active branch to be open, all the other ones whould be collapsed
-        $mycollapsed = '';
+        //$mycollapsed = '';
         // myclass only has a value when it's active
         if (!$itemclass) {
-            $ecpanded = ' collapsed';
+           // $mycollapsed = ' collapsed';
             $expanded = 'false';
             
         } else {
-            $mycollapsed = '';
+          //  $mycollapsed = '';
             $expanded = 'true';
             
-        }
+        } 
         
         // sometimes, we don't show categories by simple setting their name to "". If this is the
         // case, we want them not to be collapsed.
         // Here is a simple way to do so:
         // If the Name is empty, we also set the class, which controls the collapsed/uncollapsed
         // status, to "".
-        if (empty($itemname)) {
-            $mycollapsed = "";
-        }
+        /*if (empty($itemname)) {
+            $mycollapsed = '';
+        }*/
         
         // is it a category
         if ($itemtype == 'category') {
             $myurl = $CFG->wwwroot . '/course/index.php?categoryid=' . $itemid;
-            $itemclass_li = 'type_category depth_' . $itemdepth . '' . $mycollapsed . ' contains_branch' .
+            $itemclass_li = 'type_category depth_' . $itemdepth . '' . ' contains_branch' .
                      $mystartclass;
             $itemclass_p = 'tree_item branch' . $itemclass;
             $itemclass_a = '';
@@ -124,7 +133,7 @@ class block_simple_nav_renderer extends plugin_renderer_base {
             // We don't want course-nodes to be open, even when they are active so:
             // $mycollapsed =' collapsed';
             $myurl = $CFG->wwwroot . '/course/view.php?id=' . $itemid;
-            $itemclass_li = 'type_course depth_' . $itemdepth . '' . $mycollapsed . ' contains_branch';
+            $itemclass_li = 'type_course depth_' . $itemdepth . '' /*. $mycollapsed */. ' contains_branch';
             ;
             $itemclass_p = 'tree_item branch hasicon' . $itemclass;
             if ($itemvisibility == 0) {
@@ -179,19 +188,24 @@ class block_simple_nav_renderer extends plugin_renderer_base {
         }
         
         $li = $doc->createElement('li');
+        $li->itemid=$itemid."_group";
+        $li->expanded=$expanded;
+
         $li->setAttribute('class', $itemclass_li);
         $li = $doc->appendChild($li);
         $p = $doc->createElement('p');
         $p = $li->appendChild($p);
         $p->setAttribute('class', $itemclass_p);
         $p->setAttribute('aria-expanded', $expanded);
+        $p->setAttribute('role', "treeitem");
+        $p->setAttribute('aria-owns', $li->itemid);
         $text = $doc->createTextNode($itemname);
         $a = $doc->createElement('a');
         $a->appendChild($text);
         $a = $p->appendChild($a);
-        
         $a->setAttribute('class', $itemclass_a);
         $a->setAttribute('href', $myurl);
+        
         if (!is_null($img)) {
             $a->appendChild($img);
         }
