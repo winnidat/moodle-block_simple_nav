@@ -23,24 +23,14 @@
  */
 define(['jquery', 'core/tree'], function($, Tree) {
     return {
-        init: function(instanceid) {
+        init: function() {
             var navTree = new Tree(".block_simple_nav .block_tree");
             navTree.finishExpandingGroup = function(item) {
                 Tree.prototype.finishExpandingGroup.call(this, item);
-                Y.use('moodle-core-event', function() {
-                    Y.Global.fire(M.core.globalEvents.BLOCK_CONTENT_UPDATED, {
-                        instanceid: instanceid
-                    });
-                });
-            };
+                        };
             navTree.collapseGroup = function(item) {
                 Tree.prototype.collapseGroup.call(this, item);
-                Y.use('moodle-core-event', function() {
-                    Y.Global.fire(M.core.globalEvents.BLOCK_CONTENT_UPDATED, {
-                        instanceid: instanceid
-                    });
-                });
-            };
+                         };
         }
     };
 });
