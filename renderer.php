@@ -15,15 +15,17 @@ class block_simple_nav_renderer extends plugin_renderer_base {
         $mainnode = $doc->appendChild($node);
         $mainnode->setAttribute('class', 'block_tree list');
         $mainnode->setAttribute('role', 'tree');
-        $mainnode->setAttribute('data-ajax-loader', 'block_simple_nav/nav_loader');
+        $mainnode->setAttribute('data-ajax-loader', 'block_navigation/nav_loader');
         $coursenode = null;
         
         for ($i = 0; $i < count($items); $i++) {
             $item = $items[$i];
             $externalnode = $this->sn_print_item($item);
+            $hidden= $externalnode->expanded=="true" ? "false" : "true"; 
+            
             if (!is_null($externalnode)) {
                 $childnode = $doc->importNode($externalnode, true);
-                $hidden= $externalnode->expanded=="true" ? "false" : "true"; 
+                
                 if ($item['mytype'] == "category" || $item['mytype'] == "home" ||
                          $item['mytype'] == "nohome") {
                     $categorynode = $mainnode->appendChild($childnode);
@@ -92,12 +94,12 @@ class block_simple_nav_renderer extends plugin_renderer_base {
         // to totally skip it
         if (strpos($itemclass, 'startingpoint') !== false) {
             return null;
-        }
+        } 
         
         // we only want the active branch to be open, all the other ones whould be collapsed
         //$mycollapsed = '';
         // myclass only has a value when it's active
-        if (!$itemclass) {
+       if (!$itemclass) {
            // $mycollapsed = ' collapsed';
             $expanded = 'false';
             
@@ -105,7 +107,7 @@ class block_simple_nav_renderer extends plugin_renderer_base {
           //  $mycollapsed = '';
             $expanded = 'true';
             
-        } 
+        }
         
         // sometimes, we don't show categories by simple setting their name to "". If this is the
         // case, we want them not to be collapsed.
@@ -159,7 +161,7 @@ class block_simple_nav_renderer extends plugin_renderer_base {
             $itemclass_li = 'contains_branch item_with_icon';
             $itemclass_p = 'tree_item leaf hasicon' . $itemclass;
             $itemclass_a = '';
-            
+            $isexpandable = false;
             if ($itemvisibility == 0) {
                 $itemclass_a = 'class="dimmed_text"';
             } else {
@@ -187,16 +189,19 @@ class block_simple_nav_renderer extends plugin_renderer_base {
             }
         }
         
-        $li = $doc->createElement('li');
-        $li->itemid=$itemid."_group";
-        $li->expanded=$expanded;
 
+
+        $li = $doc->createElement('li');
+        $li->itemid=$itemid.html_writer::random_id()."_group";
+        $li->expanded=$expanded;
         $li->setAttribute('class', $itemclass_li);
         $li = $doc->appendChild($li);
         $p = $doc->createElement('p');
         $p = $li->appendChild($p);
         $p->setAttribute('class', $itemclass_p);
-        $p->setAttribute('aria-expanded', $expanded);
+        if(isset($isexpandable)&&$isexpandable){
+            $p->setAttribute('aria-expanded', $expanded);
+        }
         $p->setAttribute('role', "treeitem");
         $p->setAttribute('aria-owns', $li->itemid);
         $text = $doc->createTextNode($itemname);
@@ -205,7 +210,6 @@ class block_simple_nav_renderer extends plugin_renderer_base {
         $a = $p->appendChild($a);
         $a->setAttribute('class', $itemclass_a);
         $a->setAttribute('href', $myurl);
-        
         if (!is_null($img)) {
             $a->appendChild($img);
         }
